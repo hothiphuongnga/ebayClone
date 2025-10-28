@@ -1,4 +1,6 @@
 using ebay.Data;
+using ebay.Repositories;
+using ebay.Serrvices;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,17 @@ builder.Services.AddRazorPages();          // Hỗ trợ Razor Pages
 builder.Services.AddServerSideBlazor();    // Hỗ trợ Blazor Server
 builder.Services.AddSwaggerGen();          // Hỗ trợ Swagger (OpenAPI) cho tài liệu API
 builder.Services.AddControllers();         // Hỗ trợ API Controllers
+
+// DI REPOSITORY
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+// scpoe: tạo mới mỗi lần request
+//
+
+
+// DI SERVICES
+builder.Services.AddScoped<IProductService,ProductService>();
+
+
 
 var app = builder.Build();
 

@@ -18,5 +18,28 @@ EBAY
 
 
 
+/MyApp
+│
+├── Controllers/
+│   └── ProductController.cs            → Nhận request, trả response
+│
+├── Services/
+│   ├── IProductService.cs              → Giao diện service -> DTO -> Mapper
+│   └── ProductService.cs               → Xử lý nghiệp vụ 
+│
+├── Repositories/
+│   ├── IProductRepository.cs           → Giao diện repository
+│   └── ProductRepository.cs            → Làm việc với dữ liệu -> context -> Model -> DB 
+│
+├── Models/
+│   └── Product.cs                      → Entity ánh xạ DB
+├── DTOs/
+│   └── ProductDto.cs                   → Dữ liệu trả ra API
+├── Mappings/
+│   └── AutoMapperProfile.cs            → Cấu hình AutoMapper
+│
+└── Program.cs                          → Đăng ký DI & cấu hình hệ thống
+
+ DI hoá  không new nhiều lần 
 
 
