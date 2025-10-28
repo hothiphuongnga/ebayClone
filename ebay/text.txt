@@ -1,0 +1,22 @@
+FE _ BE react  2 năm  -> 1 năm
+BE .net   2 năm  -> 1 năm
+BE java
+python
+
+
+- CV -> JD nhà tuyển dụng
+
+
+- 1 cv -> 20 cty  
+
+
+
+EBAY
+- product : order, proimage, category ...
+- user : phân quyền , mua hàng , ...
+
+
+
+
+
+

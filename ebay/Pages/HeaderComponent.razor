@@ -1,0 +1,59 @@
+@namespace ebay.Pages
+@inject NavigationManager Navigation
+
+<header class="shadow-sm bg-white sticky-top">
+    <div class="container py-2 d-flex align-items-center justify-content-between">
+        <!-- Logo -->
+        <a class="navbar-brand fw-bold fs-4 text-primary d-flex align-items-center gap-2" href="/">
+            <i class="fa-brands fa-ebay fs-3 text-danger"></i> 
+            Ebay<span class="text-dark">.CyberSoft</span>
+        </a>
+
+        <!-- Search bar -->
+        <div class="flex-grow-1 mx-4">
+            <div class="input-group">
+                <input type="text" class="form-control rounded-start-pill ps-3" placeholder="Tìm kiếm sản phẩm...">
+                <button class="btn btn-primary rounded-end-pill px-4">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- User & Cart -->
+        <div class="d-flex align-items-center gap-3">
+            <a href="/login" class="text-dark text-decoration-none d-flex align-items-center gap-2">
+                <i class="fa fa-user-circle fs-5 text-secondary"></i>
+                <span class="fw-medium">Đăng nhập</span>
+            </a>
+
+            <div class="vr"></div>
+
+            <a href="/cart" class="text-dark position-relative d-flex align-items-center">
+                <i class="fa fa-shopping-cart fs-5"></i>
+                <span class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle">
+                    @CartItemCount
+                </span>
+            </a>
+
+            <span class="fw-semibold text-primary">
+                @TotalPrice.ToString("N0") ₫
+            </span>
+        </div>
+    </div>
+
+    <!-- Secondary nav -->
+    <nav class="border-top bg-light">
+        <div class="container d-flex justify-content-center gap-4 py-2 small fw-semibold">
+            <a class="nav-link text-dark px-2" href="/">Trang chủ</a>
+            <a class="nav-link text-dark px-2" href="/register">Đăng ký</a>
+            <a class="nav-link text-dark px-2" href="/login">Đăng nhập</a>
+            <a class="nav-link text-dark px-2" href="/about">Giới thiệu</a>
+            <a class="nav-link text-dark px-2" href="/contact">Liên hệ</a>
+        </div>
+    </nav>
+</header>
+
+@code {
+    int CartItemCount = 3;
+    decimal TotalPrice = 1250000;
+}
