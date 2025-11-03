@@ -29,6 +29,7 @@ public class ProductService(IProductRepository _repo, IMapper _mapper) : IProduc
         res.PageIndex = pagingProducts.PageIndex;
         res.PageSize = pagingProducts.PageSize;
         res.TotalRow = pagingProducts.TotalRow;
+        // chuyển danh sách sản phẩm sang DTO
         res.TotalItems = _mapper.Map<List<ProductDTO>>(pagingProducts.TotalItems);
         return res;
     }

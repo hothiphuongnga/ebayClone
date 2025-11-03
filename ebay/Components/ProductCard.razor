@@ -1,0 +1,38 @@
+@using ebay.Dtos
+@namespace ebay.Components
+
+<div class="col-4 mb-4">
+    <div class="card text-start">
+        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+            <i class="fas fa-image fa-3x text-muted"></i>
+        </div>
+        <div class="card-body">
+            @if (item.Ratings.Any())
+            {
+                <p class="card-text">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Round(item.Ratings.Average(r => r.RatingScore)))
+                        {
+                            <i class="fas fa-star text-warning"></i>
+                        }
+                        else
+                        {
+                            <i class="far fa-star text-secondary"></i>
+
+                        }
+                    }
+                    @item.Ratings.Average(r => r.RatingScore).ToString("0.0") (@item.Ratings.Count() đánh giá)
+                </p>
+            }
+            <h4 class="card-title">@item.Name</h4>
+            <p class="card-text">@item.Description</p>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public ProductDTO item { get; set; } = new ProductDTO();
+}

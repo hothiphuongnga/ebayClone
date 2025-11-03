@@ -1,6 +1,7 @@
 using ebay.Data;
 using ebay.Repositories;
 using ebay.Serrvices;
+using ebay.ServicesBlazor;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,14 @@ builder.Services.AddScoped<IProductService,ProductService>();
 
 
 
+// ĐĂNG KÝ HTTPCLIENT
+builder.Services.AddHttpClient();
+
+
+
+// === Đăng ký service state ===
+builder.Services.AddScoped<IProductPageService, ProductPageService>();
+
 var app = builder.Build();
 
 // === CẤU HÌNH MIDDLEWARE PIPELINE ===
@@ -47,7 +56,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 // Cho phép truy cập các file tĩnh (CSS, JS, ảnh, ...)
-app.UseStaticFiles();
+// app.UseStaticFiles();
 
 // Kích hoạt định tuyến
 app.UseRouting();

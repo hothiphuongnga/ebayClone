@@ -58,6 +58,12 @@ public class ProductRepository(EBayDbContext _context) : IProductRepository
         // ds tất cả bản ghi phù hợp -> tổng bản ghi => TotalRow
         int totalRow = products.Count;
         // lấy phân trang
+        // trang 1  lay 10 sp
+        // bo qua 0 10
+        // (1 - 1) *10 = 0 dong ; 
+        // trang 2 lay 10 sp    
+        // bo qua 10, lay 10
+        // (2 - 1) *10 = 10 dong ;
         var pagedProducts = products
             .Skip((pageIndex - 1) * pageSize) // bỏ qua các bản ghi của các trang trước
             .Take(pageSize) // lấy số bản ghi của trang hiện tại

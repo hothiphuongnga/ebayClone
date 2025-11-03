@@ -40,14 +40,14 @@ namespace ebay.Controllers
         public async Task<IActionResult> Get20()
         {
             var res = await _service.Get20ProductsAsync();
-            return Ok(ResponseEntity<List<ProductDTO>>.Ok(res.ToList(), "Lấy thành công")); // => 200 là oke
+            return ResponseEntity<List<ProductDTO>>.Ok(res.ToList(), "Lấy thành công"); // => 200 là oke
         }
 
         [HttpGet("paging")]
         public async Task<IActionResult> GetPaging(int pageIndex = 1,int pageSize = 10,string? search = null)
         {
             var res = await _service.GetProductsPagingAsync(pageIndex, pageSize, search);
-            return Ok(ResponseEntity<PagingResult<ProductDTO>>.Ok(res, "Lấy thành công"));
+            return ResponseEntity<PagingResult<ProductDTO>>.Ok(res, "Lấy thành công");
         }
     }
 }
