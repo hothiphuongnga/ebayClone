@@ -22,15 +22,26 @@ public class ProductService(IProductRepository _repo, IMapper _mapper) : IProduc
     }
     public async Task<PagingResult<ProductDTO>> GetProductsPagingAsync(int pageIndex, int pageSize, string? search)
     {
-        PagingResult<Product> pagingProducts = await _repo.GetProductsPagingAsync(pageIndex, pageSize, search);
+            // bọc code trong try catch để bắt lỗi
+            PagingResult<Product> pagingProducts = await _repo.GetProductsPagingAsync(pageIndex, pageSize, search);
+            ///TẠO LỖI 
 
-        // map từng phần
-        var res = new PagingResult<ProductDTO>();
-        res.PageIndex = pagingProducts.PageIndex;
-        res.PageSize = pagingProducts.PageSize;
-        res.TotalRow = pagingProducts.TotalRow;
-        // chuyển danh sách sản phẩm sang DTO
-        res.TotalItems = _mapper.Map<List<ProductDTO>>(pagingProducts.TotalItems);
-        return res;
+            int a = 10; int b = 0;
+            int c = a / b;
+
+            /// 
+            /// 
+            // map từng phần
+            var res = new PagingResult<ProductDTO>();
+            res.PageIndex = pagingProducts.PageIndex;
+            res.PageSize = pagingProducts.PageSize;
+            res.TotalRow = pagingProducts.TotalRow;
+            // chuyển danh sách sản phẩm sang DTO
+            res.TotalItems = _mapper.Map<List<ProductDTO>>(pagingProducts.TotalItems);
+            return res;
+   
+       
+
+
     }
 }

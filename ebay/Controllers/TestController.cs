@@ -1,17 +1,87 @@
 namespace ebay.Controllers
 {
-
+    using System.Text;
+    using System.Text.Json;
+    using ebay.Base;
+    using ebay.Dtos;
     using Microsoft.AspNetCore.Mvc;
 
     [Route("api/[controller]")]
     [ApiController]
     public class TestController : ControllerBase
     {
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        // filter : lọc request, xác thực, phân quyền, logging, caching
+        [HttpGet]// routing
+        public async Task<IActionResult> Get(int id) // model biding
         {
-            
-            return Ok(); // => 200 là oke 
+            // xử lý Action Method Execution
+
+            // RESULT
+            return ResponseEntity<string>.Ok("oke"); // => 200 là oke 
         }
+
+        [HttpPost("demo/{id}")]
+        // api/test/demo/2?name=abc
+        public async Task<IActionResult> Demo([FromRoute] int id, [FromQuery] string name, [FromHeader] string token) // 
+        {
+
+            var idContext = HttpContext.Request.RouteValues["id"];
+            string paramContext = HttpContext.Request.Query["name"].ToString();
+            // method, : GET POST, PUT, DELETE
+            // url, path, query string, headers, body
+
+            var tokenContext = HttpContext.Request.Headers["token"].ToString();
+            // clienip
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+
+            // lấy thông tin của body từ HttpContext
+            // hơi khó hơn vì body có thể là json, xml, formdata, text, ...
+            // HttpContext.Request.EnableBuffering(); // cho phép đọc lại body nhiều lần
+            // using var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true);
+            // string bodyString = await reader.ReadToEndAsync();
+            // HttpContext.Request.Body.Position = 0;
+            // Console.WriteLine($"🟢 Body nhận được: {bodyString}");
+            // // Parse thủ công nếu muốn
+            // var model2 = JsonSerializer.Deserialize<RatingDTO>(bodyString);
+
+
+            Console.ForegroundColor = ConsoleColor.Green;
+
+
+            Console.WriteLine("ID from Route: " + idContext);
+            Console.WriteLine("Name from Query: " + paramContext);
+            Console.WriteLine("Token from Header: " + tokenContext);
+            Console.WriteLine("Client IP: " + clientIp);
+
+
+            // 198.203.203.90:2003
+            // chặn ip ngươid dùng : 
+            // can thiệp xử lý response  
+            HttpContext.Response.Headers.Add("resspon-pnga", "hello bro");
+
+            Console.ResetColor();
+            return Ok(
+                new
+                {
+                    Id = id,
+                    Name = name,
+                    Token = token,
+                    ClientIp = clientIp,
+                    // Body = model2
+                }
+            );
+        }
+
     }
+    // HTTPCONTEXT: lưu trữ thông tin request, response, user, session, ...
+    // bao gồm tất cả thông tin gửi lên từ client và trả về từ server trong 1 phiên làm việc - request
+    
+    // cầu nối trung gian giữa client và server
+    // HttpContext được tạo mới cho mỗi request
+    // httcontext là "gói hang"
+    // middleware là "trạm vận chuyển"
+
+
+
 }

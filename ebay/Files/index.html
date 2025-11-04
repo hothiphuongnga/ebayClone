@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo CORS - Gọi API .NET</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f8fa;
+      color: #333;
+      padding: 20px;
+    }
+    button {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    pre {
+      background: #222;
+      color: #00ff91;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧠 Demo CORS - Gọi API từ Frontend khác origin</h2>
+  <p>API mục tiêu: <code>http://localhost:5242/api/Test</code></p>
+
+  <button id="btnCallApi">Gọi API</button>
+
+  <pre id="output">Kết quả sẽ hiển thị tại đây...</pre>
+
+  <script>
+    document.getElementById("btnCallApi").addEventListener("click", async () => {
+      const output = document.getElementById("output");
+      output.textContent = "⏳ Đang gọi API...";
+
+      try {
+        const response = await fetch("http://localhost:5242/api/Test?id=123", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Lỗi HTTP " + response.status);
+        }
+
+        const data = await response.json();
+        output.textContent = "✅ Kết quả nhận được:\n" + JSON.stringify(data, null, 2);
+      } catch (err) {
+        output.textContent = "❌ Gọi API thất bại:\n" + err.message + "\n\n";
+        output.textContent += "⚠️ Nếu lỗi CORS xuất hiện, kiểm tra cấu hình middleware CORS trong backend.";
+      }
+    });
+  </script>
+</body>
+</html>
