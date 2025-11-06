@@ -1,12 +1,17 @@
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 using ebay.Base;
 using ebay.Data;
 using ebay.Repositories;
 using ebay.Serrvices;
 using ebay.ServicesBlazor;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +31,41 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(RatingMapper));
 
 builder.Services.AddRazorPages();          // Hỗ trợ Razor Pages
 builder.Services.AddServerSideBlazor();    // Hỗ trợ Blazor Server
-builder.Services.AddSwaggerGen();          // Hỗ trợ Swagger (OpenAPI) cho tài liệu API
+
 builder.Services.AddControllers();         // Hỗ trợ API Controllers
+
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+    // 🔥 Thêm hỗ trợ Authorization header tất cả api
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập token vào ô bên dưới theo định dạng: Bearer {token}"
+    });
+
+    // 🔥 Định nghĩa yêu cầu sử dụng Authorization trên từng api
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // DI REPOSITORY
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -43,6 +81,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 // ĐĂNG KÝ HTTPCLIENT
 builder.Services.AddHttpClient();
 
+
+// DI JWT SERVICE
+builder.Services.AddScoped<IJwtAuthService, JwtAuthService>();
 
 
 // === Đăng ký service state ===
@@ -64,7 +105,7 @@ builder.Services.AddCors(options =>
 // cors cho tất cả 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("allowAny",builder =>
+    options.AddPolicy("allowAny", builder =>
     {
         builder.AllowAnyOrigin()// cho phép bất kỳ domain nào
                .AllowAnyHeader() // heder
@@ -73,6 +114,39 @@ builder.Services.AddCors(options =>
 });
 
 
+// === Câu hình AUTHEN, AUTHOR ===
+var privateKey = builder.Configuration["jwt:Serect-Key"];
+var Issuer = builder.Configuration["jwt:Issuer"];
+var Audience = builder.Configuration["jwt:Audience"];
+
+// cấu hình cơ bản
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    // Thiết lập các tham số xác thực token
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        // Kiểm tra và xác nhận Issuer (nguồn phát hành token)
+        ValidateIssuer = true,
+        ValidIssuer = Issuer, // Biến `Issuer` chứa giá trị của Issuer hợp lệ
+                              // Kiểm tra và xác nhận Audience (đối tượng nhận token)
+        ValidateAudience = true,
+        ValidAudience = Audience, // Biến `Audience` chứa giá trị của Audience hợp lệ
+                                  // Kiểm tra và xác nhận khóa bí mật được sử dụng để ký token
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(privateKey)),
+        // Sử dụng khóa bí mật (`privateKey`) để tạo SymmetricSecurityKey nhằm xác thực chữ ký của token
+        // Giảm độ trễ (skew time) của token xuống 0, đảm bảo token hết hạn chính xác
+        ClockSkew = TimeSpan.Zero,
+        // Xác định claim chứa vai trò của user (để phân quyền)
+        RoleClaimType = ClaimTypes.Role,
+        // Xác định claim chứa tên của user
+        NameClaimType = ClaimTypes.Name,
+        // Kiểm tra thời gian hết hạn của token, không cho phép sử dụng token hết hạn
+        ValidateLifetime = true
+    };
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -159,6 +233,9 @@ app.UseStaticFiles(new StaticFileOptions
 
 // Kích hoạt định tuyến
 app.UseRouting();
+
+app.UseAuthentication(); // Xác thực
+app.UseAuthorization();  // Phân quyền
 
 // Map các endpoint cho Controller API, RazorPages, Blazor và fallback
 app.MapControllers();
