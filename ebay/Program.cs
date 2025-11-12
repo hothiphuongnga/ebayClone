@@ -1,12 +1,15 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using Blazored.LocalStorage;
 using ebay.Base;
 using ebay.Data;
 using ebay.Repositories;
 using ebay.Serrvices;
 using ebay.ServicesBlazor;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -81,6 +84,11 @@ builder.Services.AddScoped<IProductService, ProductService>();
 // ĐĂNG KÝ HTTPCLIENT
 builder.Services.AddHttpClient();
 
+// Đăng ký LocalStorage
+builder.Services.AddBlazoredLocalStorage();
+
+// jwtstate
+builder.Services.AddScoped<AuthenticationStateProvider, JwtStateService>();
 
 // DI JWT SERVICE
 builder.Services.AddScoped<IJwtAuthService, JwtAuthService>();
@@ -120,7 +128,7 @@ var Issuer = builder.Configuration["jwt:Issuer"];
 var Audience = builder.Configuration["jwt:Audience"];
 
 // cấu hình cơ bản
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(  options =>
 {
     // Thiết lập các tham số xác thực token
     options.TokenValidationParameters = new TokenValidationParameters()
@@ -144,10 +152,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         // Kiểm tra thời gian hết hạn của token, không cho phép sử dụng token hết hạn
         ValidateLifetime = true
     };
+    // cấu hình response theo chuẩn ResponseEntity của dự án
+    options.Events = new JwtBearerEvents
+    {
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden; // 403 => không có quyền , 401 => chưa xác thực
+            context.Response.ContentType = "application/json";
+            var response = JsonSerializer.Serialize(ResponseEntity<string>.Fail("Bạn không có quyền truy cập tài nguyên này.", 403),
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            return context.Response.WriteAsync(response);
+        },
+        OnChallenge = context => // khi không có token hoặc token không hợp lệ
+        {
+            context.HandleResponse(); // 
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized; // 401
+            context.Response.ContentType = "application/json";
+            var response = JsonSerializer.Serialize(ResponseEntity<string>.Fail("Yêu cầu xác thực. Vui lòng đăng nhập.", 401),
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            return context.Response.WriteAsync(response);
+        }
+    };
+
 });
+
 
 builder.Services.AddAuthorization();
 
+
+// Đăng ký Middleware BlockIpMiddleWare
+builder.Services.AddScoped<BlockIpMiddleWare>();
 var app = builder.Build();
 
 // === CẤU HÌNH MIDDLEWARE PIPELINE ===
@@ -232,10 +266,14 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 // Kích hoạt định tuyến
+app.UseMiddleware<BlockIpMiddleWare>();
+
 app.UseRouting();
 
 app.UseAuthentication(); // Xác thực
 app.UseAuthorization();  // Phân quyền
+
+// Sử dụng Middleware chặn IP xấu
 
 // Map các endpoint cho Controller API, RazorPages, Blazor và fallback
 app.MapControllers();

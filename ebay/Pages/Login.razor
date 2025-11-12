@@ -1,0 +1,112 @@
+@page "/login"
+@using ebay.Base
+@using ebay.Dtos
+@inject HttpClient Http
+@inject NavigationManager _nav
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+
+<h3>Login</h3>
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <EditForm Model="_model" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            @if(message!="")
+            {
+                <div class="alert alert-success">
+                    @message
+                </div>
+
+            }
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @_errorMessage
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Tên đăng nhập</label>
+                <InputText class="form-control" @bind-Value="_model.Username" />
+                <ValidationMessage For="@(() => _model.Username)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <InputText class="form-control" @bind-Value="_model.Password" />
+                <ValidationMessage For="@(() => _model.Password)" />
+            </div>
+
+
+            <button class="btn btn-primary w-100" type="submit">
+                @if (_isSubmitting)
+                {
+                    <span>Đang đăng nhập...</span>
+                }
+                else
+                {
+                    <span>Đăng nhập</span>
+                }
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+
+
+@code {
+    private UserLoginDTO _model = new UserLoginDTO();
+    private bool _isSubmitting = false;
+    private string _errorMessage;
+    private string message="";
+
+    public async Task HandleLogin()
+    {
+        _isSubmitting = true;
+        Console.WriteLine($"Username: {_model.Username}, Password: {_model.Password}");
+        // gọi api đăng nhập
+        @* dùng httpclients *@
+        var res = await Http.PostAsJsonAsync($"{_nav.BaseUri}api/Auth/login", _model);
+
+        if (res.IsSuccessStatusCode)
+        {
+            // string
+
+            string resString = await res.Content.ReadAsStringAsync();
+            // {}
+            Console.WriteLine($"Response Status Code: {resString}");
+            // chuyển resString về obj ResponseEntity<UserLoginResponseDTO>
+            if (!string.IsNullOrEmpty(resString))
+            {
+                ResponseEntity<UserLoginResponseDTO> responseEntity =
+                JsonSerializer.Deserialize<ResponseEntity<UserLoginResponseDTO>>(resString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true // không phân biệt hoa thường
+                                                       // token -> Token
+                });
+
+
+                string token = responseEntity.Content.Token;
+                Console.WriteLine($"Token: {token}");
+                message="Đăng nhập thành công!";
+                _isSubmitting = false;
+                StateHasChanged();
+
+                // lưu token vào local storage
+                await _localStorage.SetItemAsStringAsync("token", token);
+
+
+                // deplay 
+                await Task.Delay(3000);
+                _nav.NavigateTo("/admin");
+            }
+
+
+        }
+
+
+
+    }
+
+}

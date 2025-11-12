@@ -1,0 +1,9 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Buyer")] 
+@*  chỉ có admin mới xem được trang này *@
+
+
+<div class="container">
+    <h3>Admin Page</h3>
+    <p>Welcome, Admin! You have access to this page.</p>
+</div>

@@ -18,7 +18,7 @@ namespace ebay.Controllers
         // đăng nhâp rồi mới gọi đươc => có token và token hợp lệ 
         // còn hạn sử dụng và nó là token do server tạo ra
         // [Authorize] // yêu cầu xác thực authen
-        [Authorize()] // yêu cầu phân quyền role admin mới đươc gọi
+        [Authorize(Roles ="Admin")] // yêu cầu phân quyền role admin mới đươc gọi
         public async Task<IActionResult> Get()
         {
 
@@ -122,7 +122,20 @@ namespace ebay.Controllers
             {
                 Token = token
             };
+            // lưu token vào cooike của response -> trình duyệt sẽ lưu cookie
+            HttpContext.Response.Cookies.Append("authToken",token, new CookieOptions
+            {
+                // HttpOnly = true,// thư viện js sẽ không truy cập được cookie này
+                Secure = true, // chỉ gửi cookie qua kết nối https
+                SameSite = SameSiteMode.Strict, // chặn gửi cookie từ bên thứ 3
+                Expires = DateTimeOffset.UtcNow.AddHours(1) // thời gian hết hạn
+            });
+
+
             return ResponseEntity<UserLoginResponseDTO>.Ok(res, "Đăng nhập thành công");
+
+            // Cach 1 : luuw token ở cookie server BE quản lý token theo request
+            // Cach 2 : lưu token ở localStorage trình duyệt BE không quản lý token , FE tự quản lý token
 
             // pnga9 8 7 6
             //string
@@ -130,4 +143,13 @@ namespace ebay.Controllers
 
     }
 }
+// ß
 
+
+/*
+Client -> login -> server tra ve token -> 
+httpcontext  -> cookie -> luu tren trinh duyet()
+
+
+
+*/

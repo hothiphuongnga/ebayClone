@@ -10,6 +10,7 @@ namespace ebay.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
+    
     public class ProductController(IProductService _service) : ControllerBase
     {
         // private readonly EBayDbContext _context;

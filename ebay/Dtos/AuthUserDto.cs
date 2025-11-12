@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ebay.Dtos;
 
 public class UserRegisterDTO
@@ -12,8 +14,9 @@ public class UserRegisterDTO
 }
 public class UserLoginDTO
 {
+    [Required(ErrorMessage = "Username không được để trống")]
     public string Username { get; set; } = null!;
-
+    [Required(ErrorMessage = "Password không được để trống")]
     public string Password { get; set; } = null!;
 }
 

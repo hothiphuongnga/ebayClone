@@ -26,8 +26,8 @@ public class ProductService(IProductRepository _repo, IMapper _mapper) : IProduc
             PagingResult<Product> pagingProducts = await _repo.GetProductsPagingAsync(pageIndex, pageSize, search);
             ///TẠO LỖI 
 
-            int a = 10; int b = 0;
-            int c = a / b;
+            // int a = 10; int b = 0;
+            // int c = a / b;
 
             /// 
             /// 
