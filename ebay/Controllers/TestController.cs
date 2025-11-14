@@ -5,17 +5,23 @@ namespace ebay.Controllers
     using ebay.Base;
     using ebay.Dtos;
     using Microsoft.AspNetCore.Mvc;
+    using ebay.Filter;
 
     [Route("api/[controller]")]
     [ApiController]
     public class TestController : ControllerBase
     {
         // filter : lọc request, xác thực, phân quyền, logging, caching
-        [HttpGet]// routing
-        public async Task<IActionResult> Get(int id) // model biding
+        [HttpPost]// routing
+        // [LogActionFilter] // áp dụng filter , không dùng DI
+        // khi gọi api này sẽ xử lý filter trước khi vào action method
+        [ServiceFilter(typeof(LogActionFilter))] // dùng DI trong filter
+                [ServiceFilter(typeof(AuthFilter))]
+
+        public async Task<IActionResult> Get([FromBody] UserLoginDTO model) // model biding
         {
             // xử lý Action Method Execution
-
+            Console.WriteLine("🔥 Đang xử lý trong Action Method với id = ");
             // RESULT
             return ResponseEntity<string>.Ok("oke"); // => 200 là oke 
         }
@@ -73,6 +79,21 @@ namespace ebay.Controllers
             );
         }
 
+        [HttpGet("exFilter")]
+        [ServiceFilter(typeof(ExceptionFilter))]
+        public async Task<IActionResult> ExFilter()
+        {
+            throw new Exception("Lỗi thử nghiệm");
+            // tạo lỗi để test filter
+        }
+
+        [HttpGet("authFilter")]
+        [ServiceFilter(typeof(AuthFilter))]
+        public async Task<IActionResult> AuthFilter()
+        {
+            Console.WriteLine("🔥 Đã qua được AuthFilter, đang ở trong Action Method");
+            return ResponseEntity<string>.Ok("Bạn đã xác thực thành công và vào được action method");
+        }
     }
     // HTTPCONTEXT: lưu trữ thông tin request, response, user, session, ...
     // bao gồm tất cả thông tin gửi lên từ client và trả về từ server trong 1 phiên làm việc - request

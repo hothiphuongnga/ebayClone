@@ -4,6 +4,7 @@ namespace ebay.Controllers
     using ebay.Base;
     using ebay.Data;
     using ebay.Dtos;
+    using ebay.Filter;
     using ebay.Serrvices;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,7 @@ namespace ebay.Controllers
 
 
         [HttpGet("test")]
+        // [filterA] xử lý filter
         public async Task<IActionResult> Get20()
         {
             var res = await _service.Get20ProductsAsync();
@@ -45,6 +47,9 @@ namespace ebay.Controllers
         }
 
         [HttpGet("paging")]
+        // gắn filter cache cho api này
+        [ServiceFilter(typeof(ResourceFilter))]
+        [ServiceFilter(typeof(ResultFilter))]
         public async Task<IActionResult> GetPaging(int pageIndex = 1,int pageSize = 10,string? search = null)
         {
             var res = await _service.GetProductsPagingAsync(pageIndex, pageSize, search);

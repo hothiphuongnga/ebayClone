@@ -5,6 +5,7 @@ using System.Text.Json;
 using Blazored.LocalStorage;
 using ebay.Base;
 using ebay.Data;
+using ebay.Filter;
 using ebay.Repositories;
 using ebay.Serrvices;
 using ebay.ServicesBlazor;
@@ -35,7 +36,9 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(RatingMapper));
 builder.Services.AddRazorPages();          // Hỗ trợ Razor Pages
 builder.Services.AddServerSideBlazor();    // Hỗ trợ Blazor Server
 
-builder.Services.AddControllers();         // Hỗ trợ API Controllers
+builder.Services.AddControllers(options=>{
+    options.Filters.AddService<LogActionFilter>(); // đăng ký filter toàn cục , tất cả api đều áp dụng
+});         // Hỗ trợ API Controllers
 
 
 builder.Services.AddSwaggerGen(options =>
@@ -182,6 +185,17 @@ builder.Services.AddAuthorization();
 
 // Đăng ký Middleware BlockIpMiddleWare
 builder.Services.AddScoped<BlockIpMiddleWare>();
+
+
+// DI  FILTER
+builder.Services.AddScoped<LogActionFilter>();
+
+builder.Services.AddScoped<ExceptionFilter>();
+builder.Services.AddScoped<AuthFilter>();
+
+builder.Services.AddScoped<ResourceFilter>();
+builder.Services.AddScoped<ResultFilter>();
+
 var app = builder.Build();
 
 // === CẤU HÌNH MIDDLEWARE PIPELINE ===
@@ -189,9 +203,9 @@ if (app.Environment.IsDevelopment())
 {
     // Môi trường dev: show trang lỗi chi tiết
     app.UseDeveloperExceptionPage();
-}
-else // Production => lỗi chung format đẹp
-{
+// }
+// else // Production => lỗi chung format đẹp
+// {
     app.UseExceptionHandler(appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -201,6 +215,9 @@ else // Production => lỗi chung format đẹp
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         // Trả về JSON chứa thông tin lỗi
+        Console.ForegroundColor = ConsoleColor.DarkRed;
+        Console.WriteLine("[Middleware] Đã xảy ra lỗi: " + exceptionFeature?.Error.Message);
+        Console.ResetColor();
         var errorResponse = new ResponseEntity<string>
         {
             StatusCode = context.Response.StatusCode,
@@ -277,6 +294,9 @@ app.UseAuthorization();  // Phân quyền
 
 // Map các endpoint cho Controller API, RazorPages, Blazor và fallback
 app.MapControllers();
+
+
+
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

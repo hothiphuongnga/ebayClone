@@ -19,7 +19,7 @@ public class BlockIpMiddleWare(EBayDbContext _contextdb) : IMiddleware
 
         DateTime now = DateTime.UtcNow; // utc nó dạng 
         DateTime windowStart = now.AddMinutes(-10); // 10 phút trước
-        int requestCount = 10; // số request tối đa trong khoảng thời gian
+        int requestCount = 1000000; // số request tối đa trong khoảng thời gian
         // luuw ds i[p bij block 
         // ds luuw ip
 
