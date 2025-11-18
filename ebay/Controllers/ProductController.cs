@@ -49,7 +49,7 @@ namespace ebay.Controllers
         [HttpGet("paging")]
         // gắn filter cache cho api này
         [ServiceFilter(typeof(ResourceFilter))]
-        [ServiceFilter(typeof(ResultFilter))]
+        // [ServiceFilter(typeof(ResultFilter))]
         public async Task<IActionResult> GetPaging(int pageIndex = 1,int pageSize = 10,string? search = null)
         {
             var res = await _service.GetProductsPagingAsync(pageIndex, pageSize, search);
@@ -58,6 +58,13 @@ namespace ebay.Controllers
     }
 }
 
+
+// size=10 , page=1 => lưu cache
+// size=10 , page=1, search = camera => lưu cache
+// size=10 , page=1, search = phone => lưu cache
+
+
+// 
 
 
 

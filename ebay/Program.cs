@@ -6,6 +6,7 @@ using Blazored.LocalStorage;
 using ebay.Base;
 using ebay.Data;
 using ebay.Filter;
+using ebay.Helper;
 using ebay.Repositories;
 using ebay.Serrvices;
 using ebay.ServicesBlazor;
@@ -16,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +38,8 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(RatingMapper));
 builder.Services.AddRazorPages();          // Hỗ trợ Razor Pages
 builder.Services.AddServerSideBlazor();    // Hỗ trợ Blazor Server
 
-builder.Services.AddControllers(options=>{
+builder.Services.AddControllers(options =>
+{
     options.Filters.AddService<LogActionFilter>(); // đăng ký filter toàn cục , tất cả api đều áp dụng
 });         // Hỗ trợ API Controllers
 
@@ -106,7 +109,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocal", builder =>
     {
-        builder.WithOrigins("http://127.0.0.1:5500","") // cho phép domain nào thì LIỆT KÊ trong này
+        builder.WithOrigins("http://127.0.0.1:5500", "") // cho phép domain nào thì LIỆT KÊ trong này
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -131,7 +134,7 @@ var Issuer = builder.Configuration["jwt:Issuer"];
 var Audience = builder.Configuration["jwt:Audience"];
 
 // cấu hình cơ bản
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(  options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     // Thiết lập các tham số xác thực token
     options.TokenValidationParameters = new TokenValidationParameters()
@@ -196,6 +199,28 @@ builder.Services.AddScoped<AuthFilter>();
 builder.Services.AddScoped<ResourceFilter>();
 builder.Services.AddScoped<ResultFilter>();
 
+
+
+// DI Memorycache
+builder.Services.AddMemoryCache();
+
+// DI redis
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379"; // hoặc connection string từ Cloud
+    // options.Configuration = "sa:123456@localhost:6379"; // hoặc connection string từ Cloud
+    options.InstanceName = "MyApp:";
+});
+
+//  đăng ký redis helper
+builder.Services.AddScoped<RedisHelper>();
+builder.Services.AddScoped<IConnectionMultiplexer>(sp =>
+{
+    var configuration = "localhost:6379";
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+
 var app = builder.Build();
 
 // === CẤU HÌNH MIDDLEWARE PIPELINE ===
@@ -203,9 +228,9 @@ if (app.Environment.IsDevelopment())
 {
     // Môi trường dev: show trang lỗi chi tiết
     app.UseDeveloperExceptionPage();
-// }
-// else // Production => lỗi chung format đẹp
-// {
+    // }
+    // else // Production => lỗi chung format đẹp
+    // {
     app.UseExceptionHandler(appBuilder =>
 {
     appBuilder.Run(async context =>
@@ -272,7 +297,7 @@ app.UseStaticFiles(new StaticFileOptions
         a.Context.Response.Headers["Cache-Control"] = "public,max-age=" + duration;
         var path = a.File.PhysicalPath; // đường dẫn vật lý của file
         // có thể kiểm tra định dạng file néu là html thì không cho truy cập
-        if(path.EndsWith(".html"))
+        if (path.EndsWith(".html"))
         {
             a.Context.Response.StatusCode = (int)HttpStatusCode.NotFound; // trả về 404
             a.Context.Response.ContentLength = 0; // không có nội dung

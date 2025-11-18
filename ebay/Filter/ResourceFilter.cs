@@ -22,6 +22,7 @@ public class ResourceFilter : IResourceFilter
         var key = context.HttpContext.Request.Path.ToString() + context.HttpContext.Request.QueryString.ToString();
         // kiểm tra ds lưu trữ (cache) có key này chưa
         //key = product?page=1&size=10
+        //  key-value
         if (_cache.TryGetValue(key, out IActionResult cachedResponse))
         {
             // có trong cache => trả về kết quả từ cache
@@ -38,6 +39,7 @@ public class ResourceFilter : IResourceFilter
     {
         // lưu kết quả vào cache
         var key = context.HttpContext.Request.Path.ToString() + context.HttpContext.Request.QueryString.ToString();
-        _cache.Set(key, context.Result, TimeSpan.FromSeconds(30)); // lưu trong 30s
+        _cache.Set(key, context.Result, TimeSpan.FromMinutes(30)); // lưu trong 30p
     }
+
 }
