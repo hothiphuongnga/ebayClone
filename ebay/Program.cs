@@ -8,7 +8,7 @@ using ebay.Data;
 using ebay.Filter;
 using ebay.Helper;
 using ebay.Repositories;
-using ebay.Serrvices;
+using ebay.Services;
 using ebay.ServicesBlazor;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -78,12 +78,19 @@ builder.Services.AddSwaggerGen(options =>
 
 // DI REPOSITORY
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+// DI UNITOFWORK
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 // scpoe: tạo mới mỗi lần request
 //
 
 
 // DI SERVICES
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
 

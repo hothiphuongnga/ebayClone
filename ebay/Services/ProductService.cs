@@ -4,7 +4,7 @@ using ebay.Dtos;
 using ebay.Models;
 using ebay.Repositories;
 
-namespace ebay.Serrvices;
+namespace ebay.Services;
 
 
 public interface IProductService

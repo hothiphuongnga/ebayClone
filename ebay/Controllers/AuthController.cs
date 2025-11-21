@@ -40,61 +40,61 @@ namespace ebay.Controllers
 
             // ++++++++++ CÁCH 1 dùng EF
             // tạo user mới thì chuyênr dto về User sau đó dùng _ contexxt add vào database
-            // User newUser = _map.Map<User>(dto);
-            // // băm mật khẩu
-            // newUser.PasswordHash = PasswordHelper.HashPassword(dto.Password);
-            // newUser.Deleted = false;
-            // // thêm user role
-            // var userRole = new UserRole
-            // {
-            //     UserId = newUser.Id,
-            //     RoleId = 9 // role user
-            // };
-            // newUser.UserRoles.Add(userRole);
-            // // lưu user vào database
-            // await _context.Users.AddAsync(newUser);
-            // // lưu thay đổi
-            // await _context.SaveChangesAsync();
-            // // trả về kết quả UserDTO
-            // var res = _map.Map<UserDTO>(newUser);
-            // return ResponseEntity<UserDTO>.Ok(res, "Đăng ký thành công");
+            User newUser = _map.Map<User>(dto);
+            // băm mật khẩu
+            newUser.PasswordHash = PasswordHelper.HashPassword(dto.Password);
+            newUser.Deleted = false;
+            // thêm user role
+            var userRole = new UserRole
+            {
+                UserId = newUser.Id,
+                RoleId = 9 // role user
+            };
+            newUser.UserRoles.Add(userRole);
+            // lưu user vào database
+            await _context.Users.AddAsync(newUser);
+            // lưu thay đổi
+            await _context.SaveChangesAsync();
+            // trả về kết quả UserDTO
+            var res = _map.Map<UserDTO>(newUser);
+            return ResponseEntity<UserDTO>.Ok(res, "Đăng ký thành công");
 
 
             // ========== CÁCH 2 DÙNG SQL Raw
-            try
-            {
-                // bắt đầu transaction
-                _context.Database.BeginTransaction();
-                string sql = "INSERT INTO Users (Username, Email, PasswordHash, FullName) VALUES (@p0, @p1, @p2, @p3)";
-                var passwordHash = PasswordHelper.HashPassword(dto.Password);
-                await _context.Database.ExecuteSqlRawAsync(sql, dto.Username, dto.Email, passwordHash, dto.FullName);
+            // try
+            // {
+            //     // bắt đầu transaction
+            //     _context.Database.BeginTransaction();
+            //     string sql = "INSERT INTO Users (Username, Email, PasswordHash, FullName) VALUES (@p0, @p1, @p2, @p3)";
+            //     var passwordHash = PasswordHelper.HashPassword(dto.Password);
+            //     await _context.Database.ExecuteSqlRawAsync(sql, dto.Username, dto.Email, passwordHash, dto.FullName);
 
-                // lấy user vừa tạo để lấy Id gán vào UserRole
-                string getUserSql = "SELECT * FROM Users WHERE Username = @p0";
-                User newUser = await _context.Users.FromSqlRaw(getUserSql, dto.Username).FirstOrDefaultAsync();
-                if (newUser == null)
-                {
-                    throw new Exception("Không tìm thấy user vừa tạo");
-                }
-                Console.WriteLine("newUser.Id" + newUser.Id);
-                // thêm user role
-                string insertUserRoleSql = "INSERT INTO UserRole (UserId, RoleId) VALUES (@p0, @p1)";
-                await _context.Database.ExecuteSqlRawAsync(insertUserRoleSql, newUser.Id, 9); // role user
+            //     // lấy user vừa tạo để lấy Id gán vào UserRole
+            //     string getUserSql = "SELECT * FROM Users WHERE Username = @p0";
+            //     User newUser = await _context.Users.FromSqlRaw(getUserSql, dto.Username).FirstOrDefaultAsync();
+            //     if (newUser == null)
+            //     {
+            //         throw new Exception("Không tìm thấy user vừa tạo");
+            //     }
+            //     Console.WriteLine("newUser.Id" + newUser.Id);
+            //     // thêm user role
+            //     string insertUserRoleSql = "INSERT INTO UserRole (UserId, RoleId) VALUES (@p0, @p1)";
+            //     await _context.Database.ExecuteSqlRawAsync(insertUserRoleSql, newUser.Id, 9); // role user
 
 
-                // commit transaction
-                _context.Database.CommitTransaction();
-                // trả về kết quả UserDTO
-                var res = _map.Map<UserDTO>(newUser);
-                return ResponseEntity<UserDTO>.Ok(res, "Đăng ký thành công");
-            }
-            catch (Exception ex)
-            {
-                // roll back nếu có lỗi
-                // rollback : quay về trạng thái trước khi thực hiện giao dịch 
-                _context.Database.RollbackTransaction(); // hoàn tác các thay đổi trong transaction
-                return ResponseEntity<UserDTO>.Fail("Đăng ký thất bại: " + ex.Message);
-            }
+            //     // commit transaction
+            //     _context.Database.CommitTransaction();
+            //     // trả về kết quả UserDTO
+            //     var res = _map.Map<UserDTO>(newUser);
+            //     return ResponseEntity<UserDTO>.Ok(res, "Đăng ký thành công");
+            // }
+            // catch (Exception ex)
+            // {
+            //     // roll back nếu có lỗi
+            //     // rollback : quay về trạng thái trước khi thực hiện giao dịch 
+            //     _context.Database.RollbackTransaction(); // hoàn tác các thay đổi trong transaction
+            //     return ResponseEntity<UserDTO>.Fail("Đăng ký thất bại: " + ex.Message);
+            // }
 
         }
 

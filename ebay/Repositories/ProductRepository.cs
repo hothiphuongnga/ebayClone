@@ -19,6 +19,8 @@ public interface IProductRepository
     // paging , trang nào , lấy bao nhiêu , tìm search gì
     Task<PagingResult<Product>> GetProductsPagingAsync(int pageIndex, int pageSize, string? search);
 
+    //update số lượng sản phẩm
+    Task<bool> UpdateStock(int productId, int quantity);
 }
 
 
@@ -77,6 +79,26 @@ public class ProductRepository(EBayDbContext _context) : IProductRepository
             TotalItems = pagedProducts
         };
         return res;
+    }
+
+    public async Task<bool> UpdateStock(int productId, int quantity)
+    {
+        // tìm sản phẩm theo productId
+        var find = await _context.Products.FindAsync(productId);
+        // giảm số lượng stock
+        if (find != null)
+        {
+            // kiểm tra đủ số lượng
+            if (find.Stock >= quantity)
+            {
+                find.Stock -= quantity;
+                return true;
+            }
+            // không đủ thì kh
+        }
+        return false;
+
+        // save change
     }
 }
 

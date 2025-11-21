@@ -5,7 +5,7 @@ namespace ebay.Controllers
     using ebay.Data;
     using ebay.Dtos;
     using ebay.Filter;
-    using ebay.Serrvices;
+    using ebay.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
